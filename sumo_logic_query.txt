@@ -1,0 +1,21 @@
+
+
+
+
+
+
+
+
+
+-- Sumo Logic Query: Detect slow /api/data responses (>3 seconds)
+-- Monitor Type: Logs | Detection Method: Static
+
+_sourceCategory=api/logs "/api/data" "response_time="
+| parse "endpoint=\"*\"" as endpoint
+| parse regex "response_time=(?<response_time>\d+)"
+| where endpoint = "/api/data" and toLong(response_time) > 3000
+| count as slow_hits
+
+Alert config:
+ Triggers: slow_hits greater than 5 in 10 min window
+ Notification: Webhook  to API Gateway -Lambda
